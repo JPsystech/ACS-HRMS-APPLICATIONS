@@ -14,21 +14,30 @@ class AttendanceActionState {
   const AttendanceActionState({
     this.isLoading = false,
     this.errorMessage,
+    this.errorCode,
+    this.errorData,
     this.lastSession,
   });
 
   final bool isLoading;
   final String? errorMessage;
+  final String? errorCode;
+  final Map<String, dynamic>? errorData;
   final AttendanceSessionDto? lastSession;
 
   AttendanceActionState copyWith({
     bool? isLoading,
     String? errorMessage,
+    String? errorCode,
+    Map<String, dynamic>? errorData,
     AttendanceSessionDto? lastSession,
+    bool clearErrorData = false,
   }) {
     return AttendanceActionState(
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
+      errorCode: clearErrorData ? null : (errorCode ?? this.errorCode),
+      errorData: clearErrorData ? null : (errorData ?? this.errorData),
       lastSession: lastSession ?? this.lastSession,
     );
   }
@@ -49,9 +58,11 @@ class AttendanceActionNotifier extends StateNotifier<AttendanceActionState> {
     double? accuracy,
     String? capturedAt,
     String? address,
+    String? outsideReasonType,
+    String? outsideReasonDetails,
   }) async {
     if (!mounted) return;
-    state = state.copyWith(isLoading: true, errorMessage: null);
+    state = state.copyWith(isLoading: true, errorMessage: null, clearErrorData: true);
     try {
       final session = await _service.punchIn(
         deviceId: deviceId,
@@ -60,13 +71,33 @@ class AttendanceActionNotifier extends StateNotifier<AttendanceActionState> {
         accuracy: accuracy,
         capturedAt: capturedAt,
         address: address,
+        outsideReasonType: outsideReasonType,
+        outsideReasonDetails: outsideReasonDetails,
       );
       if (!mounted) return;
-      state = state.copyWith(isLoading: false, lastSession: session, errorMessage: null);
+      state = state.copyWith(isLoading: false, lastSession: session, errorMessage: null, clearErrorData: true);
       _invalidateAttendance();
     } on DioException catch (e) {
       if (kDebugMode) debugPrint('❌ [PunchIn] Dio error: $e');
       if (!mounted) return;
+      
+      // Handle special outside punch case
+      if (e.response?.statusCode == 409 || e.response?.statusCode == 400) {
+        final data = e.response?.data;
+        if (data is Map) {
+          final detail = data['detail'];
+          if (detail is Map && detail['code'] == 'OUTSIDE_REASON_REQUIRED') {
+            state = state.copyWith(
+              isLoading: false,
+              errorMessage: detail['message']?.toString() ?? 'Outside office bounds',
+              errorCode: 'OUTSIDE_REASON_REQUIRED',
+              errorData: detail as Map<String, dynamic>,
+            );
+            return;
+          }
+        }
+      }
+
       state = state.copyWith(
         isLoading: false,
         errorMessage: _messageFromDio(e),
@@ -93,7 +124,7 @@ class AttendanceActionNotifier extends StateNotifier<AttendanceActionState> {
     String? address,
   }) async {
     if (!mounted) return;
-    state = state.copyWith(isLoading: true, errorMessage: null);
+    state = state.copyWith(isLoading: true, errorMessage: null, clearErrorData: true);
     try {
       final session = await _service.punchOut(
         deviceId: deviceId,
@@ -128,7 +159,7 @@ class AttendanceActionNotifier extends StateNotifier<AttendanceActionState> {
 
   void clearError() {
     if (!mounted) return;
-    state = state.copyWith(errorMessage: null);
+    state = state.copyWith(errorMessage: null, clearErrorData: true);
   }
 
   void _invalidateAttendance() {
@@ -175,9 +206,16 @@ class AttendanceActionNotifier extends StateNotifier<AttendanceActionState> {
         return 'Server is being updated. Please try again later.';
       }
       if (data is Map) {
-        final msg = data['message'] as String? ??
-            data['detail'] as String? ??
-            data['error'] as String?;
+        String? msg = data['message'] as String?;
+        if (msg == null) {
+          final detail = data['detail'];
+          if (detail is String) {
+            msg = detail;
+          } else if (detail is Map) {
+            msg = detail['message'] as String? ?? detail['detail'] as String? ?? detail['error'] as String?;
+          }
+        }
+        msg ??= data['error'] as String?;
         if (msg != null && msg.isNotEmpty) return msg;
         final list = data['errors'] as List?;
         if (list != null && list.isNotEmpty && list.first is String) {
@@ -186,9 +224,16 @@ class AttendanceActionNotifier extends StateNotifier<AttendanceActionState> {
       }
       if (res.statusCode == 400) {
         if (data is Map) {
-          final msg = data['message'] as String? ??
-              data['detail'] as String? ??
-              data['error'] as String?;
+          String? msg = data['message'] as String?;
+          if (msg == null) {
+            final detail = data['detail'];
+            if (detail is String) {
+              msg = detail;
+            } else if (detail is Map) {
+              msg = detail['message'] as String? ?? detail['detail'] as String? ?? detail['error'] as String?;
+            }
+          }
+          msg ??= data['error'] as String?;
           if (msg != null && msg.isNotEmpty) return msg;
         }
         return data?.toString() ?? 'Invalid request';

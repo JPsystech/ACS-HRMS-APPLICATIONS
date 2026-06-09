@@ -45,6 +45,8 @@ class AttendanceApi {
     double? accuracy,
     String? capturedAt,
     String? address,
+    String? outsideReasonType,
+    String? outsideReasonDetails,
   }) async {
     final body = _punchBody(
       deviceId: deviceId,
@@ -53,6 +55,8 @@ class AttendanceApi {
       accuracy: accuracy,
       capturedAt: capturedAt,
       address: address,
+      outsideReasonType: outsideReasonType,
+      outsideReasonDetails: outsideReasonDetails,
     );
     final jsonBody = jsonEncode(body);
     _logPunchPayload('punch-in', jsonBody, lat: lat, lng: lng, accuracy: accuracy);
@@ -163,6 +167,8 @@ class AttendanceApi {
     double? accuracy,
     String? capturedAt,
     String? address,
+    String? outsideReasonType,
+    String? outsideReasonDetails,
   }) {
     final effectiveDeviceId = deviceId.trim().isEmpty ? 'unknown' : deviceId.trim();
     final Map<String, dynamic>? geo;
@@ -183,11 +189,21 @@ class AttendanceApi {
     } else {
       geo = null;
     }
-    return <String, dynamic>{
+    
+    final body = <String, dynamic>{
       'source': 'MOBILE',
       'device_id': effectiveDeviceId,
       'geo': geo,
     };
+    
+    if (outsideReasonType != null && outsideReasonType.isNotEmpty) {
+      body['outside_reason_type'] = outsideReasonType;
+    }
+    if (outsideReasonDetails != null && outsideReasonDetails.isNotEmpty) {
+      body['outside_reason_details'] = outsideReasonDetails;
+    }
+    
+    return body;
   }
 
   /// Log outgoing payload with jsonEncode so device logs show exact JSON sent to backend.

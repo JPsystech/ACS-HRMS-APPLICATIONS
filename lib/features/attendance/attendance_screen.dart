@@ -25,6 +25,7 @@ import '../../widgets/fade_in_wrapper.dart';
 import '../../widgets/loading_view.dart';
 import '../../widgets/status_chip.dart';
 import 'attendance_action_notifier.dart';
+import 'widgets/outside_punch_bottom_sheet.dart';
 
 /// Default date range for history: this month (local date only, no UTC).
 (DateTime, DateTime) _defaultRange() {
@@ -490,6 +491,50 @@ class _TodayTabState extends ConsumerState<_TodayTab> {
 
       // 2. Check result from notifier state
       final actionState = ref.read(attendanceActionProvider);
+      
+      if (actionState.errorCode == 'OUTSIDE_REASON_REQUIRED') {
+        final errorData = actionState.errorData;
+        final distance = (errorData?['distance'] as num?)?.toDouble();
+        final allowedRadius = (errorData?['allowed_radius'] as num?)?.toDouble();
+
+        final reasonData = await showModalBottomSheet<Map<String, dynamic>>(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => OutsidePunchBottomSheet(
+            distance: distance,
+            allowedRadius: allowedRadius,
+          ),
+        );
+
+        if (reasonData == null || !mounted) {
+          // User cancelled
+          return;
+        }
+
+        // Retry punch in with reason
+        await ref.read(attendanceActionProvider.notifier).punchIn(
+              deviceId: result.deviceId,
+              lat: loc.lat,
+              lng: loc.lng,
+              accuracy: loc.accuracy,
+              capturedAt: capturedAt,
+              address: loc.address,
+              outsideReasonType: reasonData['type'],
+              outsideReasonDetails: reasonData['details'],
+            );
+
+        if (!mounted) return;
+        final retryState = ref.read(attendanceActionProvider);
+        if (retryState.errorMessage != null) {
+          return; // Listener will handle the error
+        }
+        
+        _showSnackBar('Punch recorded and sent for admin approval.', isError: false);
+        _runBackgroundTasksAfterPunchIn();
+        return;
+      }
+      
       if (actionState.errorMessage != null) {
         // Error is handled by the listener in build()
         return;
@@ -650,7 +695,8 @@ class _TodayTabState extends ConsumerState<_TodayTab> {
     ref.listen<AttendanceActionState>(attendanceActionProvider, (prev, next) {
       final isRealFailure = prev?.isLoading == true &&
           next.isLoading == false &&
-          next.errorMessage != null;
+          next.errorMessage != null &&
+          next.errorCode != 'OUTSIDE_REASON_REQUIRED';
 
       if (isRealFailure) {
         // Log exactly which error is being shown from the listener

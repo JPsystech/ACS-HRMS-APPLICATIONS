@@ -78,7 +78,7 @@ class ApiConfig {
       return 'http://127.0.0.1:8001';
     }
 
-    return 'http://192.168.1.12:8001';
+    return 'http://192.168.1.15:8001';
     // return 'http://10.151.208.217:8001';
     // return 'http://192.168.1.11:8001';
   }

@@ -15,6 +15,8 @@ class AttendanceService {
     double? accuracy,
     String? capturedAt,
     String? address,
+    String? outsideReasonType,
+    String? outsideReasonDetails,
   }) =>
       _api.punchIn(
         deviceId: deviceId,
@@ -23,6 +25,8 @@ class AttendanceService {
         accuracy: accuracy,
         capturedAt: capturedAt,
         address: address,
+        outsideReasonType: outsideReasonType,
+        outsideReasonDetails: outsideReasonDetails,
       );
 
   Future<AttendanceSessionDto> punchOut({
