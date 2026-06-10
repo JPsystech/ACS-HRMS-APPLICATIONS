@@ -92,4 +92,16 @@ class AttendanceCorrectionService {
     final list = response.data is List ? response.data as List : <dynamic>[];
     return list.map((e) => _mapToDto(e is Map ? Map<String, dynamic>.from(e) : <String, dynamic>{})).toList();
   }
+
+  Future<void> approveCorrection(int reqId, String? adminRemarks) async {
+    await dio.post('${Endpoints.attendanceCorrections}/$reqId/approve', data: {
+      if (adminRemarks != null && adminRemarks.isNotEmpty) 'admin_remarks': adminRemarks,
+    });
+  }
+
+  Future<void> rejectCorrection(int reqId, String? adminRemarks) async {
+    await dio.post('${Endpoints.attendanceCorrections}/$reqId/reject', data: {
+      if (adminRemarks != null && adminRemarks.isNotEmpty) 'admin_remarks': adminRemarks,
+    });
+  }
 }

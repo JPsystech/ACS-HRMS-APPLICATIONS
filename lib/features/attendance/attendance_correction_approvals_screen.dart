@@ -9,6 +9,7 @@ import '../../widgets/empty_state_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_view.dart';
 import '../../widgets/status_chip.dart';
+import 'providers/attendance_correction_action_provider.dart';
 
 class AttendanceCorrectionApprovalsScreen extends ConsumerWidget {
   const AttendanceCorrectionApprovalsScreen({super.key});
@@ -148,19 +149,76 @@ class _CorrectionRequestCard extends StatelessWidget {
   }
 }
 
-class _CorrectionDetailBottomSheet extends StatelessWidget {
+class _CorrectionDetailBottomSheet extends ConsumerStatefulWidget {
   const _CorrectionDetailBottomSheet({required this.item});
   final AttendanceCorrectionDto item;
+
+  @override
+  ConsumerState<_CorrectionDetailBottomSheet> createState() => _CorrectionDetailBottomSheetState();
+}
+
+class _CorrectionDetailBottomSheetState extends ConsumerState<_CorrectionDetailBottomSheet> {
+  final TextEditingController _remarksController = TextEditingController();
+
+  @override
+  void dispose() {
+    _remarksController.dispose();
+    super.dispose();
+  }
 
   String _formatTime(DateTime? dt) {
     if (dt == null) return '--:--';
     return IstTime.formatTimeFromUtc(dt);
   }
 
+  Future<void> _handleApprove() async {
+    try {
+      await ref.read(attendanceCorrectionActionProvider.notifier).approveCorrection(
+        widget.item.id,
+        _remarksController.text.trim(),
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Request approved successfully')),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to approve: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleReject() async {
+    try {
+      await ref.read(attendanceCorrectionActionProvider.notifier).rejectCorrection(
+        widget.item.id,
+        _remarksController.text.trim(),
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Request rejected successfully')),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to reject: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final actionState = ref.watch(attendanceCorrectionActionProvider);
+    final isSubmitting = actionState is AsyncLoading;
 
     return Container(
       padding: EdgeInsets.fromLTRB(
@@ -187,69 +245,84 @@ class _CorrectionDetailBottomSheet extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          _DetailRow(label: 'Employee', value: item.employeeName ?? 'Employee #${item.employeeId}'),
-          _DetailRow(label: 'Date', value: IstTime.formatDateFromUtc(item.date)),
-          _DetailRow(label: 'Type', value: item.requestType.replaceAll('_', ' ')),
-          _DetailRow(label: 'Requested In', value: _formatTime(item.requestedPunchIn)),
-          _DetailRow(label: 'Requested Out', value: _formatTime(item.requestedPunchOut)),
-          _DetailRow(label: 'Status', value: item.status),
-          if (item.approvedByName != null || item.approvedBy != null)
+          _DetailRow(label: 'Employee', value: widget.item.employeeName ?? 'Employee #${widget.item.employeeId}'),
+          _DetailRow(label: 'Date', value: IstTime.formatDateFromUtc(widget.item.date)),
+          _DetailRow(label: 'Type', value: widget.item.requestType.replaceAll('_', ' ')),
+          _DetailRow(label: 'Requested In', value: _formatTime(widget.item.requestedPunchIn)),
+          _DetailRow(label: 'Requested Out', value: _formatTime(widget.item.requestedPunchOut)),
+          _DetailRow(label: 'Status', value: widget.item.status),
+          if (widget.item.approvedByName != null || widget.item.approvedBy != null)
             _DetailRow(
-              label: item.status == 'REJECTED' ? 'Rejected By' : 'Approved By',
-              value: '${item.approvedByName ?? 'ID: ${item.approvedBy}'}${item.approvedRole != null ? ' • ${item.approvedRole}' : ''}',
+              label: widget.item.status == 'REJECTED' ? 'Rejected By' : 'Approved By',
+              value: '${widget.item.approvedByName ?? 'ID: ${widget.item.approvedBy}'}${widget.item.approvedRole != null ? ' • ${widget.item.approvedRole}' : ''}',
             ),
-          if (item.approvedAt != null)
-            _DetailRow(label: 'Action At', value: IstTime.formatDateTimeFromUtc(item.approvedAt!)),
-          if (item.createdAt != null)
-            _DetailRow(label: 'Submitted At', value: IstTime.formatDateTimeFromUtc(item.createdAt!)),
+          if (widget.item.approvedAt != null)
+            _DetailRow(label: 'Action At', value: IstTime.formatDateTimeFromUtc(widget.item.approvedAt!)),
+          if (widget.item.createdAt != null)
+            _DetailRow(label: 'Submitted At', value: IstTime.formatDateTimeFromUtc(widget.item.createdAt!)),
           const SizedBox(height: AppSpacing.md),
           Text(
             'Reason',
             style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: AppSpacing.xs),
-          Text(item.reason),
-          if (item.remarks != null && item.remarks!.isNotEmpty) ...[
+          Text(widget.item.reason),
+          if (widget.item.remarks != null && widget.item.remarks!.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
             Text(
               'Employee Remarks',
               style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppSpacing.xs),
-            Text(item.remarks!),
+            Text(widget.item.remarks!),
           ],
-          if (item.adminRemarks != null && item.adminRemarks!.isNotEmpty) ...[
+          if (widget.item.adminRemarks != null && widget.item.adminRemarks!.isNotEmpty && widget.item.status != 'PENDING') ...[
             const SizedBox(height: AppSpacing.md),
             Text(
               'Admin Remarks',
               style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppSpacing.xs),
-            Text(item.adminRemarks!),
+            Text(widget.item.adminRemarks!),
           ],
           const SizedBox(height: AppSpacing.lg),
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(AppRadii.md),
+          if (widget.item.status == 'PENDING') ...[
+            TextField(
+              controller: _remarksController,
+              decoration: const InputDecoration(
+                labelText: 'Admin Remarks (Optional)',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 2,
+              enabled: !isSubmitting,
             ),
-            child: Row(
+            const SizedBox(height: AppSpacing.md),
+            Row(
               children: [
-                Icon(Icons.info_outline, color: colorScheme.onPrimaryContainer),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: isSubmitting ? null : _handleReject,
+                    icon: const Icon(Icons.close),
+                    label: const Text('Reject'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: colorScheme.error,
+                      side: BorderSide(color: colorScheme.error),
+                    ),
+                  ),
+                ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
-                  child: Text(
-                    'Please review this attendance correction request in Admin Panel.',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  child: FilledButton.icon(
+                    onPressed: isSubmitting ? null : _handleApprove,
+                    icon: isSubmitting 
+                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.check),
+                    label: Text(isSubmitting ? 'Processing...' : 'Approve'),
                   ),
                 ),
               ],
             ),
-          ),
+          ],
         ],
       ),
     );

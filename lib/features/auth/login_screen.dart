@@ -345,115 +345,109 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ],
 
           // EMP CODE
-          SizedBox(
-            height: 48.0,
-            child: TextFormField(
-              controller: _empCodeController,
-              cursorColor: const Color(0xFF1F2A5A),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: const Color(0xFFF5F7FF),
-                hintText: 'EMP CODE',
-                hintStyle: const TextStyle(
-                  color: Color(0xFF7B8196),
-                  fontSize: 13.0,
-                  fontWeight: FontWeight.w400,
-                ),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  borderSide: BorderSide(
-                    color: const Color(0xFF1F2A5A).withValues(alpha: 0.15),
-                    width: 1.1,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  borderSide: BorderSide(
-                    color: const Color(0xFF1F2A5A).withValues(alpha: 0.15),
-                    width: 1.1,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  borderSide: const BorderSide(
-                    color: Color(0xFF6C54B5),
-                    width: 1.5,
-                  ),
+          TextFormField(
+            controller: _empCodeController,
+            cursorColor: const Color(0xFF1F2A5A),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: const Color(0xFFF5F7FF),
+              hintText: 'EMP CODE',
+              hintStyle: const TextStyle(
+                color: Color(0xFF7B8196),
+                fontSize: 13.0,
+                fontWeight: FontWeight.w400,
+              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.0),
+                borderSide: BorderSide(
+                  color: const Color(0xFF1F2A5A).withValues(alpha: 0.15),
+                  width: 1.1,
                 ),
               ),
-              style: const TextStyle(
-                fontSize: 14.0,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1F2A5A),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.0),
+                borderSide: BorderSide(
+                  color: const Color(0xFF1F2A5A).withValues(alpha: 0.15),
+                  width: 1.1,
+                ),
               ),
-              textCapitalization: TextCapitalization.characters,
-              keyboardType: TextInputType.text,
-              textInputAction: TextInputAction.next,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.0),
+                borderSide: const BorderSide(
+                  color: Color(0xFF6C54B5),
+                  width: 1.5,
+                ),
+              ),
             ),
+            style: const TextStyle(
+              fontSize: 14.0,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1F2A5A),
+            ),
+            textCapitalization: TextCapitalization.characters,
+            keyboardType: TextInputType.text,
+            textInputAction: TextInputAction.next,
           ),
 
           const SizedBox(height: 16.0),
 
           // PASSWORD
-          SizedBox(
-            height: 48.0,
-            child: TextFormField(
-              controller: _passwordController,
-              obscureText: _obscurePassword,
-              cursorColor: const Color(0xFF1F2A5A),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: const Color(0xFFF5F7FF),
-                hintText: 'Password',
-                hintStyle: const TextStyle(
-                  color: Color(0xFF7B8196),
-                  fontSize: 13.0,
-                  fontWeight: FontWeight.w400,
-                ),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  borderSide: BorderSide(
-                    color: const Color(0xFF1F2A5A).withValues(alpha: 0.15),
-                    width: 1.1,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  borderSide: BorderSide(
-                    color: const Color(0xFF1F2A5A).withValues(alpha: 0.15),
-                    width: 1.1,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  borderSide: const BorderSide(
-                    color: Color(0xFF6C54B5),
-                    width: 1.5,
-                  ),
-                ),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                    color: const Color(0xFF7B8196),
-                    size: 18.0,
-                  ),
-                  onPressed: () {
-                    setState(() => _obscurePassword = !_obscurePassword);
-                  },
+          TextFormField(
+            controller: _passwordController,
+            obscureText: _obscurePassword,
+            cursorColor: const Color(0xFF1F2A5A),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: const Color(0xFFF5F7FF),
+              hintText: 'Password',
+              hintStyle: const TextStyle(
+                color: Color(0xFF7B8196),
+                fontSize: 13.0,
+                fontWeight: FontWeight.w400,
+              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.0),
+                borderSide: BorderSide(
+                  color: const Color(0xFF1F2A5A).withValues(alpha: 0.15),
+                  width: 1.1,
                 ),
               ),
-              style: const TextStyle(
-                fontSize: 14.0,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1F2A5A),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.0),
+                borderSide: BorderSide(
+                  color: const Color(0xFF1F2A5A).withValues(alpha: 0.15),
+                  width: 1.1,
+                ),
               ),
-              textInputAction: TextInputAction.done,
-              onFieldSubmitted: (_) => _onLogin(),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.0),
+                borderSide: const BorderSide(
+                  color: Color(0xFF6C54B5),
+                  width: 1.5,
+                ),
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  color: const Color(0xFF7B8196),
+                  size: 18.0,
+                ),
+                onPressed: () {
+                  setState(() => _obscurePassword = !_obscurePassword);
+                },
+              ),
             ),
+            style: const TextStyle(
+              fontSize: 14.0,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1F2A5A),
+            ),
+            textInputAction: TextInputAction.done,
+            onFieldSubmitted: (_) => _onLogin(),
           ),
 
           const SizedBox(height: 12.0),
