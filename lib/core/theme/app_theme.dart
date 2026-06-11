@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'acs_theme_ext.dart';
 
@@ -118,7 +119,7 @@ abstract final class AppTheme {
           surfaceTint: AppColors.acsIndigo,
         ),
         scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-        textTheme: _textTheme(Typography.material2021().black).apply(
+        textTheme: _textTheme(GoogleFonts.interTextTheme(Typography.material2021().black)).apply(
           bodyColor: const Color(0xFF0F172A), // onSurface
           displayColor: const Color(0xFF0F172A), // onSurface
         ),
@@ -269,7 +270,7 @@ abstract final class AppTheme {
           inversePrimary: Color(0xFF1E3A8A),
           surfaceTint: AppColors.acsIndigo,
         ),
-        textTheme: _textTheme(Typography.material2021().white).apply(
+        textTheme: _textTheme(GoogleFonts.interTextTheme(Typography.material2021().white)).apply(
           bodyColor: const Color(0xFFF8FAFC), // onSurface for dark
           displayColor: const Color(0xFFF8FAFC), // onSurface for dark
         ),

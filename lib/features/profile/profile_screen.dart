@@ -19,10 +19,11 @@ import '../../widgets/fade_in_wrapper.dart';
 import '../../widgets/loading_view.dart';
 
 /// App version shown in Settings (not from API).
-const String _kAppVersion = '1.0.4';
+const String _kAppVersion = '1.0.5';
 
 /// Cache busting version for profile photo.
-final photoVersionProvider = StateProvider.autoDispose<String>((ref) => DateTime.now().millisecondsSinceEpoch.toString());
+final photoVersionProvider = StateProvider.autoDispose<String>(
+    (ref) => DateTime.now().millisecondsSinceEpoch.toString());
 
 /// Profile tab screen — the only profile UI. Uses [profileProvider] (EmployeeMeDto from GET /api/v1/employees/me).
 /// No hardcoded name/emp code/department/manager/mobile; all values from API.
@@ -97,7 +98,9 @@ class ProfileScreen extends ConsumerWidget {
               child: SizedBox(
                 height: MediaQuery.of(context).size.height * 0.6,
                 child: ErrorView(
-                  message: err.toString().replaceFirst(RegExp(r'^Exception:?\s*'), ''),
+                  message: err
+                      .toString()
+                      .replaceFirst(RegExp(r'^Exception:?\s*'), ''),
                   onRetry: () => ref.invalidate(profileProvider),
                 ),
               ),
@@ -130,10 +133,12 @@ class _ProfileContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = employee.name.isEmpty ? '—' : employee.name;
     final empCode = employee.empCode.isEmpty ? '—' : employee.empCode;
-    final department = employee.departmentName.isEmpty ? '—' : employee.departmentName;
+    final department =
+        employee.departmentName.isEmpty ? '—' : employee.departmentName;
     final manager = employee.managerName.isEmpty ? '—' : employee.managerName;
     final mobile = employee.mobileNumber.isEmpty ? '—' : employee.mobileNumber;
-    final initial = name != '—' && name.isNotEmpty ? name[0].toUpperCase() : '?';
+    final initial =
+        name != '—' && name.isNotEmpty ? name[0].toUpperCase() : '?';
     final dobText = employee.dob.isNotEmpty ? employee.dob : '—';
 
     return ListView(
@@ -149,11 +154,16 @@ class _ProfileContent extends StatelessWidget {
               // Avatar + upload button
               Row(
                 children: [
-                  _AvatarBlock(employee: employee, colorScheme: colorScheme, theme: theme, initial: initial),
+                  _AvatarBlock(
+                      employee: employee,
+                      colorScheme: colorScheme,
+                      theme: theme,
+                      initial: initial),
                   const Spacer(),
                   AppButton(
                     label: 'Upload',
-                    onPressed: () => _pickAndUploadImage(ref, context, employee),
+                    onPressed: () =>
+                        _pickAndUploadImage(ref, context, employee),
                     variant: AppButtonVariant.outlined,
                     icon: const Icon(Icons.camera_alt_outlined, size: 18),
                   ),
@@ -209,13 +219,17 @@ class _ProfileContent extends StatelessWidget {
             children: [
               // Date of Birth
               ListTile(
-                leading: Icon(Icons.cake_rounded, color: colorScheme.primary, size: 24),
+                leading: Icon(Icons.cake_rounded,
+                    color: colorScheme.primary, size: 24),
                 title: Text('Date of Birth'),
-                subtitle: Text(dobText != '—' ? _formatDobForDisplay(dobText) : '—'),
-                trailing: Icon(Icons.chevron_right_rounded, color: colorScheme.onSurfaceVariant),
+                subtitle:
+                    Text(dobText != '—' ? _formatDobForDisplay(dobText) : '—'),
+                trailing: Icon(Icons.chevron_right_rounded,
+                    color: colorScheme.onSurfaceVariant),
                 onTap: () async {
                   final now = DateTime.now();
-                  final initial = _parseDate(employee.dob) ?? DateTime(now.year - 25, now.month, now.day);
+                  final initial = _parseDate(employee.dob) ??
+                      DateTime(now.year - 25, now.month, now.day);
                   final picked = await showDatePicker(
                     context: context,
                     initialDate: initial,
@@ -225,14 +239,18 @@ class _ProfileContent extends StatelessWidget {
                   if (picked != null) {
                     final dob = DateFormat('yyyy-MM-dd').format(picked);
                     try {
-                      await ref.read(cultureServiceProvider).updateProfile(dob: dob);
+                      await ref
+                          .read(cultureServiceProvider)
+                          .updateProfile(dob: dob);
                       ref.invalidate(profileProvider);
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('DOB updated')));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('DOB updated')));
                       }
                     } catch (e) {
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Failed: $e')));
                       }
                     }
                   }
@@ -257,21 +275,24 @@ class _ProfileContent extends StatelessWidget {
             children: [
               // Department
               ListTile(
-                leading: Icon(Icons.business_rounded, color: colorScheme.primary, size: 24),
+                leading: Icon(Icons.business_rounded,
+                    color: colorScheme.primary, size: 24),
                 title: Text('Department'),
                 subtitle: Text(department),
               ),
               Divider(height: 1, color: colorScheme.outlineVariant),
               // Reporting Manager
               ListTile(
-                leading: Icon(Icons.person_rounded, color: colorScheme.primary, size: 24),
+                leading: Icon(Icons.person_rounded,
+                    color: colorScheme.primary, size: 24),
                 title: Text('Reporting Manager'),
                 subtitle: Text(manager),
               ),
               Divider(height: 1, color: colorScheme.outlineVariant),
               // Mobile Number
               ListTile(
-                leading: Icon(Icons.phone_rounded, color: colorScheme.primary, size: 24),
+                leading: Icon(Icons.phone_rounded,
+                    color: colorScheme.primary, size: 24),
                 title: Text('Mobile Number'),
                 subtitle: Text(mobile),
               ),
@@ -376,17 +397,19 @@ class _ProfileContent extends StatelessWidget {
     }
   }
 
-  Future<void> _pickAndUploadImage(WidgetRef ref, BuildContext context, EmployeeMeDto employee) async {
+  Future<void> _pickAndUploadImage(
+      WidgetRef ref, BuildContext context, EmployeeMeDto employee) async {
     final picker = ImagePicker();
     try {
-      final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+      final picked =
+          await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
       if (picked == null) return;
 
       // Upload to new R2 endpoint
       await ref.read(cultureServiceProvider).uploadProfilePhoto(picked.path);
 
       // Success! Update local photo version for cache busting
-      ref.read(photoVersionProvider.notifier).state = 
+      ref.read(photoVersionProvider.notifier).state =
           DateTime.now().millisecondsSinceEpoch.toString();
 
       // Refresh profile info (though we use /me/photo directly now)
@@ -399,7 +422,8 @@ class _ProfileContent extends StatelessWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed: $e')));
       }
     }
   }
@@ -512,10 +536,12 @@ class _SkeletonTile extends StatelessWidget {
   }
 }
 
-
-
 class _AvatarBlock extends ConsumerWidget {
-  const _AvatarBlock({required this.employee, required this.colorScheme, required this.theme, required this.initial});
+  const _AvatarBlock(
+      {required this.employee,
+      required this.colorScheme,
+      required this.theme,
+      required this.initial});
   final EmployeeMeDto employee;
   final ColorScheme colorScheme;
   final ThemeData theme;
@@ -545,7 +571,8 @@ class _AvatarBlock extends ConsumerWidget {
               return Center(
                 child: CircularProgressIndicator(
                   value: loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                      ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
                       : null,
                   strokeWidth: 2,
                 ),

@@ -23,29 +23,39 @@ class AppCard extends StatelessWidget {
       padding: padding ?? const EdgeInsets.all(16),
       child: child,
     );
-    return Card(
-      color: theme.colorScheme.surface,
-      elevation: isDark ? 0.5 : 1,
-      shadowColor: Colors.black.withValues(alpha: isDark ? 0.1 : 0.05),
-      surfaceTintColor: theme.colorScheme.surfaceTint,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: theme.colorScheme.outlineVariant,
-          width: 1,
-        ),
-      ),
+    
+    return Container(
       margin: const EdgeInsets.symmetric(
         horizontal: 0,
         vertical: AppSpacing.sm,
       ),
-      child: onTap != null
-          ? InkWell(
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(16),
-              child: content,
-            )
-          : content,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: isDark ? 0.2 : 0.5),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
+            blurRadius: 24,
+            spreadRadius: -4,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: onTap != null
+            ? InkWell(
+                onTap: onTap,
+                child: content,
+              )
+            : content,
+      ),
     );
   }
 }

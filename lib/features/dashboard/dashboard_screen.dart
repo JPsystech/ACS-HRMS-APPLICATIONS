@@ -248,8 +248,28 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   loading: () => const SizedBox.shrink(),
                   error: (_, __) => const SizedBox.shrink(),
                 ),
-                // HERO CARD - Premium Design with theme-based colors
-                AppCard(
+                // HERO CARD - Premium Gradient Design
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        colorScheme.primary, // acsIndigo
+                        AppColors.acsBlue,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.primary.withValues(alpha: 0.3),
+                        blurRadius: 20,
+                        spreadRadius: -4,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -262,18 +282,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               children: [
                                 Text(
                                   _greeting(),
-                                  style: theme.textTheme.titleLarge?.copyWith(
-                                    color: colorScheme.onSurface,
-                                    fontWeight: FontWeight.w300,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.8),
+                                    fontWeight: FontWeight.w400,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   dashboardState.employeeName,
-                                  style:
-                                      theme.textTheme.headlineSmall?.copyWith(
-                                    color: colorScheme.onSurface,
-                                    fontWeight: FontWeight.w600,
+                                  style: theme.textTheme.headlineSmall?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -0.5,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
@@ -342,11 +362,28 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      // Role Chip
-                      StatusChip(
-                        status: AppStatus.info,
-                        label: employee?.workMode ?? 'Office Mode',
-                        isSelected: true,
+                      // Role Chip - Glassmorphism
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.work_outline, color: Colors.white, size: 14),
+                            const SizedBox(width: 6),
+                            Text(
+                              employee?.workMode ?? 'Office Mode',
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -365,6 +402,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       final d = DateTime.tryParse(iso);
                       if (d == null) return '';
                       return DateFormat('dd MMM').format(d);
+                    }
+
+                    // Hide the entire section if there are no birthdays today and none in the next 7 days
+                    final todayEmpty = today.hasValue && (today.value?.isEmpty ?? true);
+                    final upcomingEmpty = upcoming7.hasValue && (upcoming7.value?.isEmpty ?? true);
+                    if (todayEmpty && upcomingEmpty) {
+                      return const SizedBox.shrink();
                     }
 
                     return Column(
@@ -730,13 +774,32 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Text(
-                              dashboardState.workingHoursText,
-                              style: theme.textTheme.headlineMedium?.copyWith(
-                                color: colorScheme.primary,
-                                fontWeight: FontWeight.w700,
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 400),
+                              transitionBuilder: (Widget child, Animation<double> animation) {
+                                return FadeTransition(
+                                  opacity: animation,
+                                  child: SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: const Offset(0.0, 0.1),
+                                      end: Offset.zero,
+                                    ).animate(CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves.easeOutCubic,
+                                    )),
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                dashboardState.workingHoursText,
+                                key: ValueKey<String>(dashboardState.workingHoursText),
+                                style: theme.textTheme.headlineMedium?.copyWith(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
-                              textAlign: TextAlign.center,
                             ),
                           ],
                         ),
