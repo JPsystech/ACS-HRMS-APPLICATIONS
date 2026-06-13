@@ -58,6 +58,22 @@ class _AttendanceCorrectionScreenState extends ConsumerState<AttendanceCorrectio
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reason is required')));
       return;
     }
+
+    final correctionsState = ref.read(myAttendanceCorrectionsProvider);
+    if (correctionsState is AsyncData) {
+      final list = correctionsState.value ?? [];
+      final isDuplicate = list.any((req) {
+        return req.date.year == selectedDate.year &&
+               req.date.month == selectedDate.month &&
+               req.date.day == selectedDate.day &&
+               (req.status == 'PENDING' || req.status == 'APPROVED');
+      });
+      if (isDuplicate) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('You already have a pending or approved request for this date.')));
+        return;
+      }
+    }
+
     setState(() => submitting = true);
     try {
       await ref.read(attendanceCorrectionServiceProvider).submit(
