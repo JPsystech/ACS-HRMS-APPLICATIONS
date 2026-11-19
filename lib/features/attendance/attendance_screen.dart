@@ -257,6 +257,10 @@ class _TodayTabState extends ConsumerState<_TodayTab> {
         accuracyThresholdMeters: AttendancePunchConfig.maxAccuracyWarningMeters,
         tryStreamImprovement: true,
         reverseGeocode: true,
+      ).timeout(
+        const Duration(seconds: 8),
+        onTimeout: () =>
+            throw const LocationServiceException(LocationFailureReason.timeout),
       );
       final deviceId = await DeviceIdService.getDeviceId();
       if (kDebugMode) {

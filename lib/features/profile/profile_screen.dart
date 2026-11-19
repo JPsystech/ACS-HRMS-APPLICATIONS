@@ -554,41 +554,53 @@ class _AvatarBlock extends ConsumerWidget {
     final baseUrl = ApiConfig.apiBaseUrl;
     final photoUrl = '${baseUrl}me/photo?v=$photoVersion';
 
+    final hasPhoto =
+        employee.profilePhotoUrl.isNotEmpty || employee.profilePhotoUpdatedAt.isNotEmpty;
+
     return SizedBox(
       width: 96,
       height: 96,
       child: ClipOval(
         child: Container(
           color: colorScheme.primaryContainer,
-          child: Image.network(
-            photoUrl,
-            headers: {
-              if (token != null) 'Authorization': 'Bearer $token',
-            },
-            fit: BoxFit.cover,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Center(
-                child: CircularProgressIndicator(
-                  value: loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes!
-                      : null,
-                  strokeWidth: 2,
-                ),
-              );
-            },
-            errorBuilder: (context, error, stackTrace) {
-              return Center(
-                child: Text(
-                  initial,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    color: colorScheme.onPrimaryContainer,
+          child: hasPhoto
+              ? Image.network(
+                  photoUrl,
+                  headers: {
+                    if (token != null) 'Authorization': 'Bearer $token',
+                  },
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Center(
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                            : null,
+                        strokeWidth: 2,
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Center(
+                      child: Text(
+                        initial,
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          color: colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                    );
+                  },
+                )
+              : Center(
+                  child: Text(
+                    initial,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      color: colorScheme.onPrimaryContainer,
+                    ),
                   ),
                 ),
-              );
-            },
-          ),
         ),
       ),
     );

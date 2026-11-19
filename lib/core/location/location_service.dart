@@ -101,9 +101,9 @@ class LocationService {
       throw LocationServiceException(LocationFailureReason.other, e.toString());
     }
 
-    if (tryStreamImprovement) {
+    if (tryStreamImprovement && position.accuracy > 15.0) {
       try {
-        final better = await _improveWithStream(position, const Duration(seconds: 4));
+        final better = await _improveWithStream(position, const Duration(seconds: 2));
         if (better != null) position = better;
       } catch (_) {
         // Keep initial position
@@ -122,7 +122,7 @@ class LocationService {
         final placemarks = await placemarkFromCoordinates(
           position.latitude,
           position.longitude,
-        );
+        ).timeout(const Duration(seconds: 3), onTimeout: () => []);
         if (placemarks.isNotEmpty) {
           address = _formatShortAddress(placemarks.first);
         }
@@ -146,18 +146,45 @@ class LocationService {
 
   /// Optional: run position stream with bestForNavigation for a short time and return better position if any.
   static Future<Position?> _improveWithStream(Position initial, Duration duration) async {
+    if (initial.accuracy <= 15.0) return null;
     Position best = initial;
-    final stream = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.bestForNavigation,
-      ),
-    );
-    final end = DateTime.now().add(duration);
-    await for (final p in stream) {
-      if (DateTime.now().isAfter(end)) break;
-      if (p.accuracy < best.accuracy) best = p;
+    final completer = Completer<Position?>();
+    StreamSubscription<Position>? sub;
+    Timer? timer;
+
+    void finish() {
+      timer?.cancel();
+      sub?.cancel();
+      if (!completer.isCompleted) {
+        completer.complete(best == initial ? null : best);
+      }
     }
-    return best == initial ? null : best;
+
+    timer = Timer(duration, finish);
+
+    try {
+      sub = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.bestForNavigation,
+        ),
+      ).listen(
+        (p) {
+          if (p.accuracy < best.accuracy) {
+            best = p;
+            if (best.accuracy <= 10.0) {
+              finish();
+            }
+          }
+        },
+        onError: (_) => finish(),
+        onDone: finish,
+        cancelOnError: true,
+      );
+    } catch (_) {
+      finish();
+    }
+
+    return completer.future;
   }
 
   static String _formatShortAddress(Placemark p) {

@@ -41,6 +41,14 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Camera is required for face attendance.</string>
+	<string>Camera access is required for face attendance capture and identity verification.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Your location is required to verify your punch-in and punch-out attendance at company premises.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Your location is required to verify your punch-in and punch-out attendance at company premises.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photo library access is required to upload profile photos and attendance documentation.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>
