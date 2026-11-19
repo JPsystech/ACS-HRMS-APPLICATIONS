@@ -145,8 +145,7 @@ String _getStatusUpdateTime(LeaveDto dto) {
     case LeaveStatus.unknown:
       return '—';
     case LeaveStatus.revoked:
-      // TODO: Handle this case.
-      throw UnimplementedError();
+      return _formatDateTime(dto.cancelledAt ?? dto.appliedAt);
   }
 }
 
@@ -543,8 +542,13 @@ class _ActionRemarkBlock extends StatelessWidget {
       case LeaveStatus.unknown:
         return const SizedBox.shrink();
       case LeaveStatus.revoked:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        title = 'Revoked';
+        byLabel = dto.cancelledBy?.displayLabel ?? '—';
+        remark = dto.cancelledRemark?.trim().isNotEmpty == true
+            ? dto.cancelledRemark!.trim()
+            : null;
+        atLabel = _formatDateTime(dto.cancelledAt ?? dto.appliedAt);
+        break;
     }
 
     final hasRemark = remark != null && remark.isNotEmpty;
@@ -1104,17 +1108,37 @@ class _ApplyLeaveTabState extends ConsumerState<_ApplyLeaveTab> {
     return v.toStringAsFixed(1);
   }
 
+  DateTime _earliestAllowedDate() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    if (_selectedType == LeaveType.sl || _selectedType == LeaveType.pl) {
+      return today.subtract(const Duration(days: 7));
+    }
+    return today;
+  }
+
   Future<void> _pickFromDate() async {
+    final earliest = _earliestAllowedDate();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    DateTime initial = _fromDate ?? today;
+    if (initial.isBefore(earliest)) {
+      initial = earliest;
+    }
+
     final date = await showDatePicker(
       context: context,
-      initialDate: _fromDate ?? DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDate: initial,
+      firstDate: earliest,
+      lastDate: today.add(const Duration(days: 365)),
     );
     if (date != null) {
       setState(() {
         _fromDate = date;
         if (_selectedDuration == LeaveDuration.halfDay) {
+          _toDate = date;
+        } else if (_toDate != null && _toDate!.isBefore(date)) {
           _toDate = date;
         }
       });
@@ -1122,12 +1146,20 @@ class _ApplyLeaveTabState extends ConsumerState<_ApplyLeaveTab> {
   }
 
   Future<void> _pickToDate() async {
-    final initial = _toDate ?? _fromDate ?? DateTime.now();
+    final earliest = _fromDate ?? _earliestAllowedDate();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    DateTime initial = _toDate ?? _fromDate ?? today;
+    if (initial.isBefore(earliest)) {
+      initial = earliest;
+    }
+
     final date = await showDatePicker(
       context: context,
-      initialDate: initial.isBefore(DateTime.now()) ? DateTime.now() : initial,
-      firstDate: _fromDate ?? DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDate: initial,
+      firstDate: earliest,
+      lastDate: today.add(const Duration(days: 365)),
     );
     if (date != null) setState(() => _toDate = date);
   }
@@ -1421,6 +1453,11 @@ class _ApplyLeaveTabState extends ConsumerState<_ApplyLeaveTab> {
                     onChanged: (v) {
                       setState(() {
                         _selectedType = v ?? LeaveType.cl;
+                        final earliest = _earliestAllowedDate();
+                        if (_fromDate != null && _fromDate!.isBefore(earliest)) {
+                          _fromDate = null;
+                          _toDate = null;
+                        }
                         // For RH, default to full day and ensure fromDate == toDate
                         if (_selectedType == LeaveType.rh) {
                           _selectedDuration = LeaveDuration.fullDay;

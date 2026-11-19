@@ -24,7 +24,6 @@ import '../../widgets/acs/acs_empty_state.dart';
 import 'widgets/approvals_widget.dart';
 import 'widgets/thought_of_day_widget.dart';
 import 'widgets/attendance_streak_widget.dart';
-import 'widgets/field_tools_widget.dart';
 import '../../widgets/loading_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/app_shell.dart';
@@ -1104,12 +1103,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 const AttendanceStreakWidget(),
                 const SizedBox(height: 24),
                 const ThoughtOfDayWidget(),
-                const SizedBox(height: 24),
-                if ((employee?.workMode.toUpperCase().contains('SITE') ??
-                        false) ||
-                    (employee?.workMode.toUpperCase().contains('FIELD') ??
-                        false))
-                  const FieldToolsWidget(),
                 const SizedBox(height: 24),
                 const ApprovalsWidget(),
                 const SizedBox(height: 24),

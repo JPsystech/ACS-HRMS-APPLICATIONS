@@ -93,12 +93,30 @@ class _EditLeaveScreenState extends ConsumerState<EditLeaveScreen> {
     return v.toStringAsFixed(1);
   }
 
+  DateTime _earliestAllowedDate() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    if (_selectedType == LeaveType.sl || _selectedType == LeaveType.pl) {
+      return today.subtract(const Duration(days: 7));
+    }
+    return today;
+  }
+
   Future<void> _pickFromDate() async {
+    final earliest = _earliestAllowedDate();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    DateTime initial = _fromDate;
+    if (initial.isBefore(earliest)) {
+      initial = earliest;
+    }
+
     final date = await showDatePicker(
       context: context,
-      initialDate: _fromDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 30)), // Allow minor backdating
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDate: initial,
+      firstDate: earliest,
+      lastDate: today.add(const Duration(days: 365)),
     );
     if (date != null) {
       setState(() {
@@ -113,11 +131,20 @@ class _EditLeaveScreenState extends ConsumerState<EditLeaveScreen> {
   }
 
   Future<void> _pickToDate() async {
+    final earliest = _fromDate;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    DateTime initial = _toDate.isBefore(_fromDate) ? _fromDate : _toDate;
+    if (initial.isBefore(earliest)) {
+      initial = earliest;
+    }
+
     final date = await showDatePicker(
       context: context,
-      initialDate: _toDate.isBefore(_fromDate) ? _fromDate : _toDate,
-      firstDate: _fromDate,
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDate: initial,
+      firstDate: earliest,
+      lastDate: today.add(const Duration(days: 365)),
     );
     if (date != null) setState(() => _toDate = date);
   }

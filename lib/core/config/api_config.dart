@@ -67,7 +67,7 @@ class ApiConfig {
 
   static String _getMobileBaseUrl() {
     if (kReleaseMode) {
-      return 'https://acs-hrms-backend.onrender.com';
+      return 'https://api.aksharconsultancyservices.co.in';
     }
 
     if (defaultTargetPlatform == TargetPlatform.android) {
@@ -78,7 +78,7 @@ class ApiConfig {
       return 'http://127.0.0.1:8001';
     }
 
-    return 'http://192.168.1.6:8001';
+    return 'http://192.168.1.9:8001';
     // return 'http://10.151.208.217:8001';
     // return 'http://192.168.1.11:8001';
   }
